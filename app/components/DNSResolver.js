@@ -219,7 +219,7 @@ const DNSResolver = () => {
               className="text-sm text-center"
               textAnchor="middle"
             >
-              .com Server
+              TLD Server
             </text>
 
             <rect

@@ -75,63 +75,86 @@
 //   }
 // }
 
-
 // pages/api/dns.js
 
 // Mock DNS zone data structure with various record types and TTL values
 const zones = {
   root: {
-    "com": { type: "NS", value: "com-servers.net", ttl: 172800 },
-    "org": { type: "NS", value: "org-servers.net", ttl: 172800 },
-    "net": { type: "NS", value: "net-servers.net", ttl: 172800 },
-    "io": { type: "NS", value: "io-servers.net", ttl: 172800 }
+    com: { type: "NS", value: "com-servers.net", ttl: 172800 },
+    org: { type: "NS", value: "org-servers.net", ttl: 172800 },
+    net: { type: "NS", value: "net-servers.net", ttl: 172800 },
+    io: { type: "NS", value: "io-servers.net", ttl: 172800 },
   },
-  
+
   tld: {
-    "com": {
+    com: {
       "example.com": { type: "NS", value: "ns1.example.com", ttl: 86400 },
       "google.com": { type: "NS", value: "ns1.google.com", ttl: 86400 },
       "github.com": { type: "NS", value: "ns1.github.com", ttl: 86400 },
-      "microsoft.com": { type: "NS", value: "ns1.microsoft.com", ttl: 86400 }
+      "microsoft.com": { type: "NS", value: "ns1.microsoft.com", ttl: 86400 },
     },
-    "org": {
+    org: {
       "wikipedia.org": { type: "NS", value: "ns1.wikipedia.org", ttl: 86400 },
-      "mozilla.org": { type: "NS", value: "ns1.mozilla.org", ttl: 86400 }
-    }
+      "mozilla.org": { type: "NS", value: "ns1.mozilla.org", ttl: 86400 },
+    },
   },
-  
+
   authoritative: {
     "example.com": {
       A: { type: "A", value: "93.184.216.34", ttl: 300 },
-      AAAA: { type: "AAAA", value: "2606:2800:220:1:248:1893:25c8:1946", ttl: 300 },
+      AAAA: {
+        type: "AAAA",
+        value: "2606:2800:220:1:248:1893:25c8:1946",
+        ttl: 300,
+      },
       MX: [
         { type: "MX", value: "mail.example.com", priority: 10, ttl: 3600 },
-        { type: "MX", value: "backup-mail.example.com", priority: 20, ttl: 3600 }
+        {
+          type: "MX",
+          value: "backup-mail.example.com",
+          priority: 20,
+          ttl: 3600,
+        },
       ],
-      TXT: { type: "TXT", value: "v=spf1 include:_spf.example.com ~all", ttl: 3600 },
+      TXT: {
+        type: "TXT",
+        value: "v=spf1 include:_spf.example.com ~all",
+        ttl: 3600,
+      },
       CNAME: {
-        "www": { type: "CNAME", value: "example.com", ttl: 3600 },
-        "mail": { type: "CNAME", value: "mail-server.example.com", ttl: 3600 }
-      }
+        www: { type: "CNAME", value: "example.com", ttl: 3600 },
+        mail: { type: "CNAME", value: "mail-server.example.com", ttl: 3600 },
+      },
     },
     "google.com": {
       A: { type: "A", value: "172.217.14.206", ttl: 300 },
       AAAA: { type: "AAAA", value: "2607:f8b0:4004:814::200e", ttl: 300 },
       MX: [
         { type: "MX", value: "aspmx.l.google.com", priority: 1, ttl: 3600 },
-        { type: "MX", value: "alt1.aspmx.l.google.com", priority: 5, ttl: 3600 }
+        {
+          type: "MX",
+          value: "alt1.aspmx.l.google.com",
+          priority: 5,
+          ttl: 3600,
+        },
       ],
-      TXT: { type: "TXT", value: "v=spf1 include:_spf.google.com ~all", ttl: 3600 }
+      TXT: {
+        type: "TXT",
+        value: "v=spf1 include:_spf.google.com ~all",
+        ttl: 3600,
+      },
     },
     "github.com": {
       A: { type: "A", value: "140.82.114.4", ttl: 300 },
       AAAA: { type: "AAAA", value: "2606:50c0:8000::154", ttl: 300 },
-      MX: [
-        { type: "MX", value: "aspmx.l.github.com", priority: 1, ttl: 3600 }
-      ],
-      TXT: { type: "TXT", value: "v=spf1 include:_spf.github.com ~all", ttl: 3600 }
-    }
-  }
+      MX: [{ type: "MX", value: "aspmx.l.github.com", priority: 1, ttl: 3600 }],
+      TXT: {
+        type: "TXT",
+        value: "v=spf1 include:_spf.github.com ~all",
+        ttl: 3600,
+      },
+    },
+  },
 };
 
 // Helper function to validate domain name format
@@ -142,13 +165,13 @@ const isValidDomain = (domain) => {
 
 // Helper function to get TLD from domain
 const getTLD = (domain) => {
-  const parts = domain.split('.');
+  const parts = domain.split(".");
   return parts[parts.length - 1];
 };
 
 // Helper function to extract subdomain if present
 const getSubdomain = (domain) => {
-  const parts = domain.split('.');
+  const parts = domain.split(".");
   if (parts.length > 2) {
     return parts[0];
   }
@@ -162,8 +185,8 @@ const resolveCNAME = (domain, recordType, visited = new Set()) => {
   }
   visited.add(domain);
 
-  const domainParts = domain.split('.');
-  const baseDomain = domainParts.slice(-2).join('.');
+  const domainParts = domain.split(".");
+  const baseDomain = domainParts.slice(-2).join(".");
   const subdomain = domainParts.length > 2 ? domainParts[0] : null;
 
   const zoneData = zones.authoritative[baseDomain];
@@ -187,10 +210,10 @@ const resolveDomain = (domain, recordType, visited = new Set()) => {
     return { error: "Invalid domain format" };
   }
 
-  const domainParts = domain.split('.');
-  const baseDomain = domainParts.slice(-2).join('.');
+  const domainParts = domain.split(".");
+  const baseDomain = domainParts.slice(-2).join(".");
   const subdomain = getSubdomain(domain);
-  
+
   // First, check for CNAME if it's a subdomain
   if (subdomain) {
     const cnameResult = resolveCNAME(domain, recordType, visited);
@@ -207,26 +230,26 @@ const resolveDomain = (domain, recordType, visited = new Set()) => {
 
   // Handle different record types
   switch (recordType) {
-    case 'A':
-    case 'AAAA':
+    case "A":
+    case "AAAA":
       if (!zoneData[recordType]) {
         return { error: `No ${recordType} record found` };
       }
       return { record: zoneData[recordType] };
 
-    case 'MX':
+    case "MX":
       if (!zoneData.MX) {
         return { error: "No MX records found" };
       }
       return { record: zoneData.MX };
 
-    case 'TXT':
+    case "TXT":
       if (!zoneData.TXT) {
         return { error: "No TXT record found" };
       }
       return { record: zoneData.TXT };
 
-    case 'CNAME':
+    case "CNAME":
       if (!subdomain || !zoneData.CNAME || !zoneData.CNAME[subdomain]) {
         return { error: "No CNAME record found" };
       }
@@ -237,12 +260,116 @@ const resolveDomain = (domain, recordType, visited = new Set()) => {
   }
 };
 
+// export default function handler(req, res) {
+//   if (req.method !== "POST") {
+//     return res.status(405).json({ error: "Method not allowed" });
+//   }
+
+//   const { domain, type = "A" } = req.body;
+
+//   if (!domain) {
+//     return res.status(400).json({ error: "Domain is required" });
+//   }
+
+//   // Initialize steps array for visualization
+//   const steps = [
+//     {
+//       server: "client-to-resolver",
+//       action: `Query for ${domain} (${type} record)`,
+//     },
+//   ];
+
+//   // Simulate DNS resolution process
+//   const tld = getTLD(domain);
+
+//   // 1. Root server query
+//   steps.push({
+//     server: "resolver-to-root",
+//     action: `Querying root servers for .${tld} servers`,
+//   });
+
+//   if (zones[tld]) {
+//     steps.push({
+//       server: "root-to-resolver",
+//       action: `Received .${tld} server information`,
+//     });
+
+//     // 2. TLD server query
+//     if (zones[tld]){
+//       steps.push({
+//         server: "resolver-to-tld",
+//         action: `Querying .${tld} servers for ${domain} nameservers`,
+//       });
+
+//      // 3. Authoritative server query
+//       steps.push({
+//       server: "resolver-to-auth",
+//       action: `Querying authoritative servers for ${domain} ${type} record`,
+//       });
+
+//       // Perform the actual resolution
+//       const resolution = resolveDomain(domain, type);
+
+//       if (resolution.error) {
+//         steps.push({
+//           server: "auth-to-resolver",
+//           action: `Error: ${resolution.error}`,
+//         });
+//         return res.status(200).json({
+//         steps,
+//         error: resolution.error,
+//         });
+//       }else{
+//          // Success response
+//          steps.push(
+//           {
+//             server: "auth-to-resolver",
+//             action: `Received ${type} record for ${domain}`,
+//           },
+//           {
+//             server: "resolver-to-client",
+//             action: `Returning ${type} record to client`,
+//           }
+//         );
+//       }
+//     } else {
+//       steps.push({
+//         server: "tld-to-resolver",
+//         action: `No .${tld} server information available`,
+//       });
+//     }
+
+
+//   } else {
+//     steps.push({
+//       server: "root-to-resolver",
+//       action: `No .${tld} server information found`,
+//     });
+//   }
+
+  
+//   // Perform the actual resolution
+//   const resolution = resolveDomain(domain, type);
+//   // Simulate network delay
+//   return res.status(200).json({
+//     steps,
+//     error: resolution.error,
+//     });
+
+//   setTimeout(() => {
+//     res.status(200).json({
+//       steps,
+//       record: resolution.record,
+//     });
+//   }, 20);
+// }
+
 export default function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { domain, type = 'A' } = req.body;
+  const { domain, type = "A" } = req.body;
 
   if (!domain) {
     return res.status(400).json({ error: "Domain is required" });
@@ -250,58 +377,81 @@ export default function handler(req, res) {
 
   // Initialize steps array for visualization
   const steps = [
-    { 
+    {
       server: "client-to-resolver",
-      action: `Query for ${domain} (${type} record)`
-    }
+      action: `Query for ${domain} (${type} record)`,
+    },
   ];
 
   // Simulate DNS resolution process
   const tld = getTLD(domain);
-  
+
   // 1. Root server query
-  steps.push(
-    { 
-      server: "resolver-to-root",
-      action: `Querying root servers for .${tld} servers`
-    },
-    {
+  steps.push({
+    server: "resolver-to-root",
+    action: `Querying root servers for .${tld} servers`,
+  });
+
+  if (!zones.root[tld]) {
+    steps.push({
       server: "root-to-resolver",
-      action: `Received .${tld} server information`
-    }
-  );
+      action: `No .${tld} server information found`,
+    });
+    return res.status(200).json({ steps, error: `TLD .${tld} not found` });
+  }
+
+  steps.push({
+    server: "root-to-resolver",
+    action: `Received .${tld} server information`,
+  });
 
   // 2. TLD server query
-  steps.push(
-    {
+  if (!zones.tld[tld]) {
+    steps.push({
       server: "resolver-to-tld",
-      action: `Querying .${tld} servers for ${domain} nameservers`
-    },
-    {
+      action: `No .${tld} TLD server information available`,
+    });
+    return res.status(200).json({ steps, error: `No TLD servers for .${tld}` });
+  }
+
+  steps.push({
+    server: "resolver-to-tld",
+    action: `Querying .${tld} servers for ${domain} nameservers`,
+  });
+
+  const tldZone = zones.tld[tld][domain];
+  if (!tldZone) {
+    steps.push({
       server: "tld-to-resolver",
-      action: `Received authoritative nameservers for ${domain}`
-    }
-  );
+      action: `No nameservers found for ${domain}`,
+    });
+    return res.status(200).json({
+      steps,
+      error: `Domain ${domain} not found in TLD .${tld}`,
+    });
+  }
+
+  steps.push({
+    server: "tld-to-resolver",
+    action: `Received authoritative nameservers for ${domain}`,
+  });
 
   // 3. Authoritative server query
-  steps.push(
-    {
-      server: "resolver-to-auth",
-      action: `Querying authoritative servers for ${domain} ${type} record`
-    }
-  );
+  steps.push({
+    server: "resolver-to-auth",
+    action: `Querying authoritative servers for ${domain} ${type} record`,
+  });
 
-  // Perform the actual resolution
   const resolution = resolveDomain(domain, type);
 
   if (resolution.error) {
     steps.push({
       server: "auth-to-resolver",
-      action: `Error: ${resolution.error}`
+      action: `Error: ${resolution.error}`,
     });
-    return res.status(200).json({ 
+    return res.status(200).json({
       steps,
-      error: resolution.error
+      error: resolution.error,
     });
   }
 
@@ -309,11 +459,11 @@ export default function handler(req, res) {
   steps.push(
     {
       server: "auth-to-resolver",
-      action: `Received ${type} record for ${domain}`
+      action: `Received ${type} record for ${domain}`,
     },
     {
       server: "resolver-to-client",
-      action: `Returning ${type} record to client`
+      action: `Returning ${type} record to client`,
     }
   );
 
@@ -321,7 +471,7 @@ export default function handler(req, res) {
   setTimeout(() => {
     res.status(200).json({
       steps,
-      record: resolution.record
+      record: resolution.record,
     });
   }, 2000);
 }
